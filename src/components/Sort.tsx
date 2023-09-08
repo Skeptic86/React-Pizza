@@ -1,16 +1,21 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { selectSort, setSort } from "../redux/slices/filterSlice";
+import {
+  SortPropetyEnum,
+  selectSort,
+  setSort,
+} from "../redux/slices/filterSlice";
+import { SortType } from "../redux/slices/filterSlice";
 
 type SortItem = {
   name: string;
-  sortProperty: string;
+  sortProperty: SortPropetyEnum;
 };
 
 export const sortList: SortItem[] = [
-  { name: "популярности", sortProperty: "rating" },
-  { name: "цене", sortProperty: "price" },
-  { name: "алфавиту", sortProperty: "title" },
+  { name: "популярности", sortProperty: SortPropetyEnum.RATING },
+  { name: "цене", sortProperty: SortPropetyEnum.PRICE },
+  { name: "алфавиту", sortProperty: SortPropetyEnum.TITLE },
 ];
 
 function Sort() {
@@ -20,7 +25,7 @@ function Sort() {
 
   const [isVisible, setIsVisible] = React.useState(false);
 
-  const onClickListSort = (obj: SortItem) => {
+  const onClickListSort = (obj: SortType) => {
     dispatch(setSort(obj));
     setIsVisible(false);
   };

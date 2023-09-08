@@ -4,6 +4,7 @@ import qs from "qs";
 import { Link, useNavigate } from "react-router-dom";
 
 import {
+  FilterSliceState,
   selectFilter,
   setCategoryId,
   setCurrentPage,
@@ -14,11 +15,16 @@ import Sort, { sortList } from "../components/Sort";
 import PizzaBlock from "../components/PizzaBlock";
 import Skeleton from "../components/PizzaBlock/Skeleton";
 import Pagination from "../components/Pagination";
-import { fetchPizzas, selectPizzaData } from "../redux/slices/pizzaSlice";
+import {
+  SearchPizzasParams,
+  fetchPizzas,
+  selectPizzaData,
+} from "../redux/slices/pizzaSlice";
+import { useAppDispatch } from "../redux/store";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const isSearch = React.useRef(false);
   const isMounted = React.useRef(false);
 
@@ -40,12 +46,11 @@ const Home: React.FC = () => {
     const sortBy = sort.sortProperty;
 
     dispatch(
-      // @ts-ignore
       fetchPizzas({
         category,
         search,
         sortBy,
-        currentPage,
+        currentPage: String(currentPage),
       })
     );
   };
@@ -53,12 +58,19 @@ const Home: React.FC = () => {
   //Проверяем URL-Params при первом рендере и сохраняем в редаксе
   React.useEffect(() => {
     if (window.location.search) {
-      const params = qs.parse(window.location.search.substring(1));
-      const sort = sortList.find(
-        (obj) => obj.sortProperty === params.sortProperty
-      );
+      const params = qs.parse(
+        window.location.search.substring(1)
+      ) as unknown as SearchPizzasParams;
+      const sort = sortList.find((obj) => obj.sortProperty === params.sortBy);
 
-      dispatch(setFilters({ ...params, sort }));
+      dispatch(
+        setFilters({
+          searchValue: params.search,
+          categoryId: Number(params.category),
+          currentPage: Number(params.currentPage),
+          sort: sort || sortList[0],
+        })
+      );
       isSearch.current = true;
     }
   }, []);
@@ -86,11 +98,7 @@ const Home: React.FC = () => {
     window.scrollTo(0, 0);
   }, [categoryId, sort, searchValue, currentPage]);
 
-  const pizzas = items.map((val: any) => (
-    <Link key={val.id} to={`/pizza/${val.id}`}>
-      <PizzaBlock {...val} />
-    </Link>
-  ));
+  const pizzas = items.map((val: any) => <PizzaBlock key={val.id} {...val} />);
   const skeletons = [...new Array(6)].map((_, index) => (
     <Skeleton key={index} />
   ));
